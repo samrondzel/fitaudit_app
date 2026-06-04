@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fitaudit Food Tracker</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="container">
+    <nav class="top-nav">
+      <button id="searchTabBtn" class="tab-btn active" type="button">Поиск продуктов</button>
+      <button id="todayTabBtn" class="tab-btn" type="button">Съел сегодня <span id="todayCount" class="pill">0</span></button>
+      <button id="deficitTabBtn" class="tab-btn" type="button">Надо добить норму</button>
+    </nav>
+
+    <section id="searchScreen">
+      <section class="hero">
+        <p class="badge">Локальная база: {{ foods_count }} продуктов</p>
+        <h1>Поиск по продуктам Fitaudit</h1>
+        <p class="subtitle">Начни печатать название продукта, выбери вариант, укажи граммы и добавь его в дневник “Съел сегодня”.</p>
+
+        <div class="search-box">
+          <input id="searchInput" type="text" placeholder="Например: банан, абрикос, груша..." autocomplete="off">
+          <div id="suggestions" class="suggestions hidden"></div>
+        </div>
+      </section>
+
+      <section id="emptyState" class="empty">
+        <h2>Выбери продукт</h2>
+        <p>Результаты появятся здесь после клика по подсказке.</p>
+      </section>
+
+      <section id="foodCard" class="card hidden">
+        <div class="card-header">
+          <div>
+            <h2 id="foodName"></h2>
+            <p id="foodTitle"></p>
+          </div>
+          <a id="sourceLink" href="#" target="_blank" rel="noreferrer">Источник</a>
+        </div>
+
+        <div class="portion-panel">
+          <label for="gramsInput">Количество, грамм</label>
+          <div class="portion-row">
+            <input id="gramsInput" type="number" min="0" max="3000" step="1" value="100">
+            <button id="addFoodBtn" type="button">Добавить</button>
+          </div>
+          <p class="hint">Значения и проценты пересчитываются пропорционально: 100 г → выбранное количество.</p>
+        </div>
+
+        <h3>КБЖУ</h3>
+        <div id="macros" class="macro-grid"></div>
+
+        <div class="tables">
+          <div>
+            <h3>Витамины</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Название</th>
+                  <th>Кол-во</th>
+                  <th>% нормы</th>
+                </tr>
+              </thead>
+              <tbody id="vitaminsTable"></tbody>
+            </table>
+          </div>
+
+          <div>
+            <h3>Минералы</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Название</th>
+                  <th>Кол-во</th>
+                  <th>% нормы</th>
+                </tr>
+              </thead>
+              <tbody id="mineralsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section id="todayScreen" class="hidden">
+      <section class="hero compact">
+        <div class="card-header">
+          <div>
+            <p class="badge">Дневник</p>
+            <h1>Съел сегодня</h1>
+            <p class="subtitle">Здесь хранятся продукты, добавленные из поиска. Данные сохраняются в браузере через localStorage.</p>
+          </div>
+          <button id="clearTodayBtn" class="danger-btn" type="button">Очистить день</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Продукты</h2>
+        <div id="todayEmpty" class="empty-inline">Пока ничего не добавлено.</div>
+        <div id="todayItems" class="today-list"></div>
+      </section>
+
+      <section class="card">
+        <h2>Итого за сегодня</h2>
+        <h3>КБЖУ</h3>
+        <div id="todayMacros" class="macro-grid"></div>
+
+        <div class="tables">
+          <div>
+            <h3>Витамины</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Название</th>
+                  <th>Кол-во</th>
+                  <th>% нормы</th>
+                </tr>
+              </thead>
+              <tbody id="todayVitaminsTable"></tbody>
+            </table>
+          </div>
+
+          <div>
+            <h3>Минералы</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Название</th>
+                  <th>Кол-во</th>
+                  <th>% нормы</th>
+                </tr>
+              </thead>
+              <tbody id="todayMineralsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section id="deficitScreen" class="hidden">
+      <section class="hero compact">
+        <div class="deficit-hero-layout">
+          <div>
+            <p class="badge">Подбор продуктов</p>
+            <h1>Надо добить норму</h1>
+            <p class="subtitle">Выбери витамин, минерал или КБЖУ-параметр. Приложение покажет, сколько уже набрано в “Съел сегодня”, сколько осталось до 100% нормы, и какие продукты из базы содержат больше всего этого элемента на 100 г.</p>
+
+            <div class="search-box">
+              <input id="nutrientInput" type="text" placeholder="Например: витамин C, магний, калий, белки..." autocomplete="off">
+              <div id="nutrientSuggestions" class="suggestions hidden"></div>
+            </div>
+          </div>
+
+          <aside class="daily-mini-chart">
+            <h3>Сегодня по всем элементам</h3>
+            <div id="dailyMiniBars"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="deficitEmpty" class="empty">
+        <h2>Выбери элемент</h2>
+        <p>После выбора появится прогресс по дневной норме и топ продуктов.</p>
+      </section>
+
+      <section id="deficitCard" class="card hidden">
+        <div class="card-header">
+          <div>
+            <h2 id="deficitTitle">Элемент</h2>
+            <p id="deficitSubtitle"></p>
+          </div>
+        </div>
+
+        <div class="deficit-layout">
+          <div class="donut-wrap">
+            <div id="deficitDonut" class="donut" style="--progress: 0;">
+              <div>
+                <strong id="deficitPercent">0%</strong>
+                <span>нормы</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="deficit-stats">
+            <div class="macro">
+              <span>Съел</span>
+              <strong id="deficitEaten">—</strong>
+            </div>
+            <div class="macro">
+              <span>Осталось до 100%</span>
+              <strong id="deficitLeft">—</strong>
+            </div>
+            <div class="macro">
+              <span>% нормы</span>
+              <strong id="deficitDaily">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <h3>Топ продуктов по содержанию на 100 г</h3>
+        <div id="topProductsEmpty" class="empty-inline hidden">Нет продуктов с этим элементом в текущем кэше.</div>
+        <div class="top-products-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Продукт</th>
+                <th>В 100 г</th>
+                <th>% нормы / 100 г</th>
+                <th>Сколько съесть</th>
+                <th>Получится</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="topProductsBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
