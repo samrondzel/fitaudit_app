@@ -306,5 +306,4 @@ def api_top_nutrient():
     return jsonify(results[:limit])
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+app.run(debug=True)
