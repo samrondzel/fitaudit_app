@@ -306,4 +306,4 @@ def api_top_nutrient():
     return jsonify(results[:limit])
 
 
-app.run(debug=True)
+app.run()
